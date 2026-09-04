@@ -1,0 +1,6 @@
+{
+  "name": "KPMBP SmartHub",
+  "description": "Internal Digital Campus Platform for Kolej Profesional MARA Bandar Penawar (KPMBP) - Staff & Lecturer Directory",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
