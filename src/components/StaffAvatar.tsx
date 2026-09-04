@@ -16,7 +16,7 @@ export const StaffAvatar: React.FC<StaffAvatarProps> = ({
   sizeClassName = 'w-14 h-14 md:w-16 md:h-16',
   avatarBgClassName = 'bg-gradient-to-tr from-indigo-500 via-indigo-600 to-indigo-700 text-white',
   ringClassName = 'ring-2 ring-indigo-500/30',
-  showOnlineStatus = true,
+  showOnlineStatus = false,
   textSizeClassName = 'text-base md:text-lg',
 }) => {
   const staffId = staff?.staff_id || staff?.ID || '';
@@ -48,7 +48,6 @@ export const StaffAvatar: React.FC<StaffAvatarProps> = ({
     }
   };
 
-  const isAktif = staff?.Status?.toLowerCase() === 'aktif';
   const initials = getInitials(staff?.Nama || '');
 
   return (
@@ -71,10 +70,7 @@ export const StaffAvatar: React.FC<StaffAvatarProps> = ({
 
       {showOnlineStatus && (
         <span
-          className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-white ${
-            isAktif ? 'bg-emerald-500' : 'bg-slate-400'
-          }`}
-          title={isAktif ? 'Aktif' : 'Tidak Aktif'}
+          className="absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-white bg-slate-400"
         />
       )}
     </div>

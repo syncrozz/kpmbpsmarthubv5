@@ -26,11 +26,18 @@ import {
   RotateCcw,
   Smartphone,
   Download,
-  FileDown
+  FileDown,
+  Shield,
+  ShieldCheck,
+  Trash2,
+  Key,
+  Mail,
+  Hash
 } from 'lucide-react';
-import { SyncConfig, Staff, StaffCommittee } from '../types';
+import { SyncConfig, Staff, StaffCommittee, AuthorizedAdmin } from '../types';
 import { GAS_CONFIG } from '../config/gasConfig';
 import { saveStaffListToFirestore, saveCommitteesToFirestore } from '../config/firebase';
+import { getAuthorizedAdmins, addAuthorizedAdmin, removeAuthorizedAdmin } from '../utils/adminAuthService';
 
 interface SyncSettingsProps {
   isOpen?: boolean;
@@ -111,6 +118,37 @@ export const SyncSettings: React.FC<SyncSettingsProps> = ({
   const [importType, setImportType] = useState<'staff' | 'committee'>('staff');
   const [rawText, setRawText] = useState('');
   const [importMessage, setImportMessage] = useState('');
+
+  // Authorized Admin management states
+  const [authorizedAdmins, setAuthorizedAdmins] = useState<AuthorizedAdmin[]>(() => getAuthorizedAdmins());
+  const [newAdminEmail, setNewAdminEmail] = useState('');
+  const [newAdminIc, setNewAdminIc] = useState('');
+  const [newAdminName, setNewAdminName] = useState('');
+  const [adminAuthStatus, setAdminAuthStatus] = useState<{ success: boolean; message: string } | null>(null);
+
+  const handleAddAdmin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAdminEmail.trim() || !newAdminIc.trim()) {
+      setAdminAuthStatus({ success: false, message: 'Sila masukkan emel MARA dan 4 digit terakhir nombor IC.' });
+      return;
+    }
+    const res = addAuthorizedAdmin(newAdminEmail, newAdminIc, newAdminName);
+    setAdminAuthStatus(res);
+    if (res.success) {
+      setAuthorizedAdmins(getAuthorizedAdmins());
+      setNewAdminEmail('');
+      setNewAdminIc('');
+      setNewAdminName('');
+      setTimeout(() => setAdminAuthStatus(null), 4000);
+    }
+  };
+
+  const handleRemoveAdmin = (id: string) => {
+    const res = removeAuthorizedAdmin(id);
+    setAdminAuthStatus(res);
+    setAuthorizedAdmins(getAuthorizedAdmins());
+    setTimeout(() => setAdminAuthStatus(null), 3000);
+  };
 
   const targetSheetUrl = `https://docs.google.com/spreadsheets/d/${sheetId || GAS_CONFIG.spreadsheetId}`;
   const targetScriptUrl = `https://script.google.com/d/${scriptId || GAS_CONFIG.scriptId}/edit`;
@@ -456,8 +494,8 @@ export const SyncSettings: React.FC<SyncSettingsProps> = ({
   // Copy Headers to Clipboard
   const handleCopyHeaders = (type: 'staff' | 'committee') => {
     const textToCopy = type === 'staff'
-      ? 'Bil,StaffID,Nama,Kategori,Jawatan,Unit,Tahun,Status,Kelulusan,Pengkhususan,DaerahAsal,Telefon,Sambungan,WhatsApp,Email,URL Profil,Sumber,Status,LastSync,Gred,Tahun Lahir ,PlatNo1,PlatNo2,PlatNo3,PlatMotor1,PlatMotor2'
-      : 'Bil,StaffID,Nama,Kategori,Jawatan,Unit,Tahun,Status';
+      ? 'Bil,StaffID,Nama,Kategori,Jawatan,Unit,Tahun,Kelulusan,Pengkhususan,DaerahAsal,Telefon,Sambungan,WhatsApp,Email,URL Profil,Sumber,LastSync,Gred,Tahun Lahir ,PlatNo1,PlatNo2,PlatNo3,PlatMotor1,PlatMotor2'
+      : 'Bil,StaffID,Nama,Kategori,Jawatan,Unit,Tahun';
     
     navigator.clipboard.writeText(textToCopy);
     setCopiedHeaders(type);
@@ -467,28 +505,28 @@ export const SyncSettings: React.FC<SyncSettingsProps> = ({
   // Muat Turun Templat CSV Kakitangan
   const handleDownloadStaffTemplate = () => {
     const headers = [
-      'Bil', 'StaffID', 'Nama', 'Kategori', 'Jawatan', 'Unit', 'Tahun', 'Status',
+      'Bil', 'StaffID', 'Nama', 'Kategori', 'Jawatan', 'Unit', 'Tahun',
       'Kelulusan', 'Pengkhususan', 'DaerahAsal', 'Telefon', 'Sambungan', 'WhatsApp',
-      'Email', 'URL Profil', 'Sumber', 'Status', 'LastSync', 'Gred', 'Tahun Lahir ',
+      'Email', 'URL Profil', 'Sumber', 'LastSync', 'Gred', 'Tahun Lahir ',
       'PlatNo1', 'PlatNo2', 'PlatNo3', 'PlatMotor1', 'PlatMotor2'
     ];
     const sampleRows = [
       [
-        '1', 'ST001', 'Muhammad Fazly Bin Jamaluddin', 'Pengurusan', 'Pengarah', 'Pengurusan', '2026', 'Aktif',
+        '1', 'ST001', 'Muhammad Fazly Bin Jamaluddin', 'Pengurusan', 'Pengarah', 'Pengurusan', '2026',
         '', '', 'Kuantan, Pahang', '013-9500149', '201', '60139500149',
-        'fazly.jamaluddin@mara.gov.my', '', 'Sistem KPMBP', 'Aktif', '2026-09-04 00:00', 'DG13', '',
+        'fazly.jamaluddin@mara.gov.my', '', 'Sistem KPMBP', '2026-09-04 00:00', 'DG13', '',
         'WUL3110', 'WB1782D', 'A7306A', '', ''
       ],
       [
-        '2', 'ST002', 'Mohd Hakim Bin Hafiz', 'Pengurusan', 'Timb. Pengarah HEP', 'Pentadbiran', '2026', 'Aktif',
+        '2', 'ST002', 'Mohd Hakim Bin Hafiz', 'Pengurusan', 'Timb. Pengarah HEP', 'Pentadbiran', '2026',
         '', '', '', '018-3854235', '208', '60183854235',
-        'hakim.hafiz@mara.gov.my', '', 'Sistem KPMBP', 'Aktif', '2026-09-04 00:00', 'DG12', '1986',
+        'hakim.hafiz@mara.gov.my', '', 'Sistem KPMBP', '2026-09-04 00:00', 'DG12', '1986',
         'SJ8684', '', '', '', ''
       ],
       [
-        '6', 'ST010', 'Norhasnah Binti Mohd Nordin CMILT, M.T.A.M', 'Pengurusan', 'Ketua Jabatan', 'Sains Kuantitatif', '2026', 'Aktif',
+        '6', 'ST010', 'Norhasnah Binti Mohd Nordin CMILT, M.T.A.M', 'Pengurusan', 'Ketua Jabatan', 'Sains Kuantitatif', '2026',
         'Sarjana Teknologi Pendidikan, UTM', 'Teknologi Maklumat', '', '012-7278737', '244', '60127278737',
-        'norhasnah2@gmail.com', '', 'Sistem KPMBP', 'Aktif', '2026-09-04 00:00', 'DG12', '',
+        'norhasnah2@gmail.com', '', 'Sistem KPMBP', '2026-09-04 00:00', 'DG12', '',
         'JGK6336', '', '', '', ''
       ]
     ];
@@ -518,9 +556,9 @@ export const SyncSettings: React.FC<SyncSettingsProps> = ({
     }
 
     const headers = [
-      'Bil', 'StaffID', 'Nama', 'Kategori', 'Jawatan', 'Unit', 'Tahun', 'Status',
+      'Bil', 'StaffID', 'Nama', 'Kategori', 'Jawatan', 'Unit', 'Tahun',
       'Kelulusan', 'Pengkhususan', 'DaerahAsal', 'Telefon', 'Sambungan', 'WhatsApp',
-      'Email', 'URL Profil', 'Sumber', 'Status', 'LastSync', 'Gred', 'Tahun Lahir ',
+      'Email', 'URL Profil', 'Sumber', 'LastSync', 'Gred', 'Tahun Lahir ',
       'PlatNo1', 'PlatNo2', 'PlatNo3', 'PlatMotor1', 'PlatMotor2'
     ];
 
@@ -532,7 +570,6 @@ export const SyncSettings: React.FC<SyncSettingsProps> = ({
       const jawatan = s.Jawatan || '';
       const unit = s.Unit || s.DepartmentID || '';
       const tahun = s.Tahun || '2026';
-      const status = s.Status || 'Aktif';
       const kelulusan = s.Kelulusan || '';
       const pengkhususan = s.Pengkhususan || '';
       const daerahAsal = s.DaerahAsal || '';
@@ -559,7 +596,6 @@ export const SyncSettings: React.FC<SyncSettingsProps> = ({
         jawatan,
         unit,
         tahun,
-        status,
         kelulusan,
         pengkhususan,
         daerahAsal,
@@ -569,7 +605,6 @@ export const SyncSettings: React.FC<SyncSettingsProps> = ({
         email,
         urlProfil,
         sumber,
-        status,
         lastSync,
         gred,
         tahunLahir,
@@ -592,11 +627,11 @@ export const SyncSettings: React.FC<SyncSettingsProps> = ({
 
   // Muat Turun Templat CSV Jawatankuasa
   const handleDownloadCommitteeTemplate = () => {
-    const headers = ['Bil', 'StaffID', 'Nama', 'Kategori', 'Jawatan', 'Unit', 'Tahun', 'Status'];
+    const headers = ['Bil', 'StaffID', 'Nama', 'Kategori', 'Jawatan', 'Unit', 'Tahun'];
     const sampleRows = [
-      ['1', 'ST001', 'Ts. Dr. Ahmad bin Abdullah', 'Pengurusan', 'Pengerusi', 'JK Pengurusan Kolej (JPK)', '2025', 'Aktif'],
-      ['2', 'ST001', 'Ts. Dr. Ahmad bin Abdullah', 'Pengurusan', 'Pengerusi', 'JK Keselamatan & Kesihatan Pekerjaan Kolej (JKKP)', '2025', 'Aktif'],
-      ['3', 'ST002', 'Siti Aminah binti Kassim', 'Akademik', 'Setiausaha', 'JK Peperiksaan & Penilaian', '2025', 'Aktif']
+      ['1', 'ST001', 'Ts. Dr. Ahmad bin Abdullah', 'Pengurusan', 'Pengerusi', 'JK Pengurusan Kolej (JPK)', '2025'],
+      ['2', 'ST001', 'Ts. Dr. Ahmad bin Abdullah', 'Pengurusan', 'Pengerusi', 'JK Keselamatan & Kesihatan Pekerjaan Kolej (JKKP)', '2025'],
+      ['3', 'ST002', 'Siti Aminah binti Kassim', 'Akademik', 'Setiausaha', 'JK Peperiksaan & Penilaian', '2025']
     ];
 
     const csvContent = [
@@ -623,7 +658,7 @@ export const SyncSettings: React.FC<SyncSettingsProps> = ({
       return;
     }
 
-    const headers = ['Bil', 'StaffID', 'Nama', 'Kategori', 'Jawatan', 'Unit', 'Tahun', 'Status'];
+    const headers = ['Bil', 'StaffID', 'Nama', 'Kategori', 'Jawatan', 'Unit', 'Tahun'];
     const rows = dataToExport.map((c, idx) => [
       String(idx + 1),
       c.staff_id || '',
@@ -631,8 +666,7 @@ export const SyncSettings: React.FC<SyncSettingsProps> = ({
       c.peringkat || '',
       c.peranan || '',
       c.jawatankuasa || '',
-      c.tahun || '',
-      c.catatan || 'Aktif'
+      c.tahun || ''
     ]);
 
     const csvContent = [
@@ -704,7 +738,7 @@ function doPost(e) {
     if (payload && payload.staffList) {
       sheet.clearContents();
       // Set headers
-      var headers = ["ID", "Bahagian", "DepartmentID", "Nama", "Jawatan", "Kelulusan", "Pengkhususan", "Telefon", "WhatsApp", "Sambungan", "Email", "URL Profil", "Sumber", "Status", "LastSync"];
+      var headers = ["ID", "Bahagian", "DepartmentID", "Nama", "Jawatan", "Kelulusan", "Pengkhususan", "Telefon", "WhatsApp", "Sambungan", "Email", "URL Profil", "Sumber", "LastSync"];
       sheet.appendRow(headers);
       
       payload.staffList.forEach(function(stf) {
@@ -712,7 +746,7 @@ function doPost(e) {
           stf.ID, stf.Bahagian, stf.DepartmentID, stf.Nama, stf.Jawatan,
           stf.Kelulusan, stf.Pengkhususan, stf.Telefon, stf.WhatsApp,
           stf.Sambungan, stf.Email, stf["URL Profil"], stf.Sumber,
-          stf.Status, stf.LastSync
+          stf.LastSync
         ]);
       });
       return ContentService.createTextOutput(JSON.stringify({success: true, count: payload.staffList.length}))
@@ -891,6 +925,158 @@ function doPost(e) {
             </div>
           </div>
 
+          {/* Otorisasi Akses Admin (Emel MARA & 4 Digit PIN IC) */}
+          <div className="p-4 md:p-5 bg-gradient-to-br from-indigo-50/90 via-white to-slate-50 rounded-2xl border border-indigo-200/90 shadow-xs space-y-4 text-left">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-indigo-100/80 pb-3">
+              <div>
+                <h4 className="text-xs md:text-sm font-extrabold text-indigo-950 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-indigo-600" />
+                  <span>Otorisasi Akses Admin (Emel MARA & 4 Digit PIN IC)</span>
+                </h4>
+                <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                  Master Admin boleh membenarkan pegawai mengakses Mod Admin untuk melihat maklumat sensitif (Daerah Asal, Tahun Lahir, No. Plat Kenderaan).
+                </p>
+              </div>
+              <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-900 border border-indigo-200 self-start sm:self-auto shrink-0">
+                Master PIN: 5313
+              </span>
+            </div>
+
+            {/* Explanatory Info Card */}
+            <div className="p-3 bg-amber-50/80 border border-amber-200/70 rounded-xl flex items-start gap-2.5 text-amber-950 text-[11px]">
+              <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <p className="font-bold">Cara Format Otorisasi:</p>
+                <p className="text-amber-900/90 leading-relaxed">
+                  Masukkan alamat emel rasmi MARA (cth: <span className="font-mono font-bold">khairi.mohd@mara.gov.my</span>) dan kombinasi 4 digit nombor IC terakhir (cth: untuk IC <span className="font-mono font-bold">861115-46-5305</span>, PIN keselamatannya adalah <span className="font-mono font-bold bg-amber-200/70 px-1 rounded">5305</span>).
+                </p>
+              </div>
+            </div>
+
+            {/* Add Authorized Admin Form */}
+            <form onSubmit={handleAddAdmin} className="space-y-3 bg-white p-3.5 rounded-xl border border-indigo-100 shadow-2xs">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                    <Mail className="w-3 h-3 text-indigo-600" />
+                    <span>Alamat Emel MARA *</span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="cth: khairi.mohd@mara.gov.my"
+                    value={newAdminEmail}
+                    onChange={(e) => setNewAdminEmail(e.target.value)}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                    <Hash className="w-3 h-3 text-indigo-600" />
+                    <span>4 Digit Terakhir No. IC *</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={14}
+                    placeholder="cth: 5305 (atau 861115-46-5305)"
+                    value={newAdminIc}
+                    onChange={(e) => setNewAdminIc(e.target.value)}
+                    className="w-full px-3 py-2 text-xs font-mono rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                    <UserCheck className="w-3 h-3 text-indigo-600" />
+                    <span>Nama Pegawai (Pilihan)</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="cth: Khairi Mohd"
+                    value={newAdminName}
+                    onChange={(e) => setNewAdminName(e.target.value)}
+                    className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 pt-1">
+                <span className="text-[10px] text-slate-400 font-medium italic">
+                  * Admin ini boleh log masuk menggunakan Emel MARA & PIN 4-digit IC.
+                </span>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white rounded-xl text-xs font-extrabold shadow-sm transition-all cursor-pointer flex items-center gap-1.5 shrink-0"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Otorisasi Admin</span>
+                </button>
+              </div>
+
+              {adminAuthStatus && (
+                <p className={`text-[11px] p-2 rounded-lg font-bold flex items-center gap-1.5 ${
+                  adminAuthStatus.success 
+                    ? 'bg-emerald-50 border border-emerald-200 text-emerald-800' 
+                    : 'bg-red-50 border border-red-200 text-red-700'
+                }`}>
+                  {adminAuthStatus.success ? '✓' : '⚠'} {adminAuthStatus.message}
+                </p>
+              )}
+            </form>
+
+            {/* List of Authorized Admins */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-[11px] font-bold text-slate-600 px-1">
+                <span>Senarai Pegawai Diotorisasi ({authorizedAdmins.length})</span>
+                <span className="text-[10px] text-slate-400 font-normal">Disimpan secara automatik</span>
+              </div>
+
+              <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                {authorizedAdmins.map((admin) => (
+                  <div
+                    key={admin.id}
+                    className="p-2.5 bg-white rounded-xl border border-slate-200 flex items-center justify-between gap-3 shadow-2xs hover:border-indigo-200 transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-700 font-black text-xs shrink-0">
+                        {admin.name ? admin.name.charAt(0).toUpperCase() : 'A'}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <p className="text-xs font-bold text-slate-900 truncate">
+                            {admin.name || admin.email}
+                          </p>
+                          <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-100">
+                            {admin.role === 'master' ? 'Master' : 'Admin'}
+                          </span>
+                        </div>
+                        <p className="text-[10px] font-mono text-slate-500 truncate">
+                          {admin.email} • PIN IC: <span className="font-bold text-indigo-900">{admin.icPin}</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="hidden sm:inline-block text-[10px] text-slate-400 font-mono">
+                        {admin.addedAt ? new Date(admin.addedAt).toLocaleDateString('ms-MY') : ''}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveAdmin(admin.id)}
+                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                        title="Batalkan otorisasi admin ini"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
           {/* Direct Data Importer & Exporter (CSV/TSV) */}
           <div className="p-4 bg-gradient-to-br from-indigo-50/70 to-amber-50/40 rounded-2xl border border-indigo-100/80 shadow-xs space-y-3 text-left">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1011,7 +1197,7 @@ function doPost(e) {
 
                       <div className="p-2 bg-white rounded-lg border border-indigo-100 text-[11px] font-mono text-slate-800 break-all select-all">
                         <span className="text-indigo-800 font-bold">Header Sah: </span>
-                        Bil, StaffID, Nama, Kategori, Jawatan, Unit, Tahun, Status, Kelulusan, Pengkhususan, DaerahAsal, Telefon, Sambungan, WhatsApp, Email, URL Profil, Sumber, Status, LastSync, Gred, Tahun Lahir , PlatNo1, PlatNo2, PlatNo3, PlatMotor1, PlatMotor2
+                        Bil, StaffID, Nama, Kategori, Jawatan, Unit, Tahun, Kelulusan, Pengkhususan, DaerahAsal, Telefon, Sambungan, WhatsApp, Email, URL Profil, Sumber, LastSync, Gred, Tahun Lahir , PlatNo1, PlatNo2, PlatNo3, PlatMotor1, PlatMotor2
                       </div>
 
                       {/* Export Actions Buttons */}
@@ -1110,7 +1296,7 @@ function doPost(e) {
 
                       <div className="p-2 bg-white rounded-lg border border-amber-200/60 text-[11px] font-mono text-slate-800 break-all select-all">
                         <span className="text-amber-800 font-bold">Header Sah: </span>
-                        Bil, StaffID, Nama, Kategori, Jawatan, Unit, Tahun, Status
+                        Bil, StaffID, Nama, Kategori, Jawatan, Unit, Tahun
                       </div>
 
                       {/* Export Actions Buttons */}
@@ -1159,7 +1345,7 @@ function doPost(e) {
                         rows={5}
                         value={rawText}
                         onChange={(e) => setRawText(e.target.value)}
-                        placeholder={`Bil,StaffID,Nama,Kategori,Jawatan,Unit,Tahun,Status\n1,ST001,Ts. Dr. Ahmad bin Abdullah,Pengurusan,Pengerusi,JK Pengurusan Kolej (JPK),2025,Aktif\n2,ST001,Ts. Dr. Ahmad bin Abdullah,Pengurusan,Pengerusi,JK Keselamatan & Kesihatan Pekerjaan Kolej (JKKP),2025,Aktif`}
+                        placeholder={`Bil,StaffID,Nama,Kategori,Jawatan,Unit,Tahun\n1,ST001,Ts. Dr. Ahmad bin Abdullah,Pengurusan,Pengerusi,JK Pengurusan Kolej (JPK),2025\n2,ST001,Ts. Dr. Ahmad bin Abdullah,Pengurusan,Pengerusi,JK Keselamatan & Kesihatan Pekerjaan Kolej (JKKP),2025`}
                         className="w-full p-3 bg-amber-50/30 border border-amber-200/80 rounded-xl text-xs font-mono focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none leading-relaxed"
                       />
 

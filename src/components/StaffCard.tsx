@@ -43,8 +43,6 @@ export const StaffCard: React.FC<StaffCardProps> = ({ staff, onClick, isAdminMod
     profileUrl.startsWith('data:image/')
   );
 
-  const isAktif = staff.Status?.toLowerCase() === 'aktif';
-
   const gred = getStaffGrade(staff);
 
   return (
@@ -80,7 +78,6 @@ export const StaffCard: React.FC<StaffCardProps> = ({ staff, onClick, isAdminMod
                 <span className="hidden sm:inline">Sunting</span>
               </button>
             )}
-            <span className={`w-2 h-2 rounded-full ${isAktif ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} title={staff.Status || 'Aktif'} />
             <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-0.5 transition-all" />
           </div>
         </div>

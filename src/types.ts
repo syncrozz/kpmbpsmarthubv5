@@ -61,3 +61,13 @@ export interface SyncConfig {
   isConnected: boolean;
   lastSyncTime: string | null;
 }
+
+export interface AuthorizedAdmin {
+  id: string;
+  email: string;
+  pin: string; // 4-digit PIN (last 4 digits of IC)
+  icLast4?: string;
+  name?: string;
+  role?: string;
+  createdAt?: string;
+}

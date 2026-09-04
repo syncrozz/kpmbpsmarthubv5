@@ -131,8 +131,8 @@ export const AddEditStaffModal: React.FC<AddEditStaffModalProps> = ({
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4 text-left">
-            {/* Grid 1: ID, Status, Bahagian, Dept */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {/* Grid 1: ID, Bahagian, Dept */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="space-y-1">
                 <label className="text-[10px] font-bold text-gray-600 uppercase tracking-wider">ID Staf</label>
                 <input
@@ -143,20 +143,6 @@ export const AddEditStaffModal: React.FC<AddEditStaffModalProps> = ({
                   className="w-full px-3 py-2 text-xs border border-white/30 rounded-xl bg-white/20 text-gray-500 font-mono cursor-not-allowed"
                   disabled
                 />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-gray-600 uppercase tracking-wider">Status</label>
-                <select
-                  name="Status"
-                  value={formData.Status}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 text-xs border border-white/40 rounded-xl bg-white/40 text-gray-800 font-semibold focus:outline-none focus:bg-white/80 focus:ring-2 focus:ring-indigo-500/15"
-                >
-                  <option value="Aktif">Aktif</option>
-                  <option value="Cuti">Cuti</option>
-                  <option value="Bersara">Bersara</option>
-                </select>
               </div>
 
               <div className="space-y-1">

@@ -25,7 +25,7 @@ import {
   Smartphone,
   Download
 } from 'lucide-react';
-import { Staff, DivisionType, SyncConfig, StaffCommittee } from './types';
+import { Staff, DivisionType, SyncConfig, StaffCommittee, AuthorizedAdmin } from './types';
 import { INITIAL_STAFF_DATA } from './data/initialStaff';
 import { STAFF_GRADE_MAP, determineBahagian } from './utils/staffGrade';
 import { getDistrictState } from './utils/stateMapping';
@@ -110,6 +110,7 @@ export default function App() {
   
   // Admin & Sync States
   const [isAdminMode, setIsAdminMode] = useState(false);
+  const [currentAdmin, setCurrentAdmin] = useState<AuthorizedAdmin | null>(null);
   const [isAdminPinOpen, setIsAdminPinOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncError, setSyncError] = useState<string | null>(null);
@@ -161,6 +162,7 @@ export default function App() {
   const handleToggleAdminMode = () => {
     if (isAdminMode) {
       setIsAdminMode(false);
+      setCurrentAdmin(null);
     } else {
       setIsAdminPinOpen(true);
     }
@@ -419,8 +421,19 @@ export default function App() {
     return staffList.map((staff) => {
       const district = String(staff.DaerahAsal || '');
       const state = getDistrictState(district);
-      const plateRaw = String(staff.NoPlat || '');
-      const plateNoSpace = plateRaw.replace(/\s+/g, '');
+
+      // Collect all vehicle plates: PlatNo1, PlatNo2, PlatNo3, PlatMotor1, PlatMotor2, NoPlat
+      const allPlates = [
+        staff.PlatNo1,
+        staff.PlatNo2,
+        staff.PlatNo3,
+        staff.PlatMotor1,
+        staff.PlatMotor2,
+        staff.NoPlat,
+      ].filter(Boolean) as string[];
+
+      const platesNormalized = allPlates.map((p) => String(p).toLowerCase().trim());
+      const platesNoSpace = allPlates.map((p) => String(p).toLowerCase().replace(/\s+/g, ''));
 
       // Combine all searchable staff fields into a single normalized index text
       const searchableText = [
@@ -437,14 +450,14 @@ export default function App() {
         staff.Telefon,
         staff.Sambungan,
         staff.WhatsApp,
-        plateRaw,
-        plateNoSpace,
+        ...platesNormalized,
+        ...platesNoSpace,
         staff.TahunLahir,
+        staff['Tahun Lahir'],
         district,
         state,
         staff.Kelulusan,
         staff.Pengkhususan,
-        staff.Status,
         staff.Sumber,
       ]
         .filter(Boolean)
@@ -454,6 +467,7 @@ export default function App() {
       return {
         staff,
         searchableText,
+        platesNoSpace,
       };
     });
   }, [staffList]);
@@ -466,9 +480,12 @@ export default function App() {
     const qNoSpace = q.replace(/\s+/g, '');
 
     return indexedStaffList
-      .filter(({ staff, searchableText }) => {
+      .filter(({ staff, searchableText, platesNoSpace }) => {
         if (q) {
-          const matchesQuery = searchableText.includes(q) || searchableText.includes(qNoSpace);
+          const matchesQuery =
+            searchableText.includes(q) ||
+            searchableText.includes(qNoSpace) ||
+            platesNoSpace.some((plate) => plate.includes(qNoSpace));
           if (!matchesQuery) return false;
         }
 
@@ -493,7 +510,7 @@ export default function App() {
 
   // Get count stats
   const totalStaff = staffList.length;
-  const activeStaff = staffList.filter(s => s.Status === 'Aktif').length;
+  const supportStaff = staffList.filter(s => s.Bahagian !== 'Akademik').length;
   const academicStaff = staffList.filter(s => s.Bahagian === 'Akademik').length;
 
   return (
@@ -537,7 +554,7 @@ export default function App() {
             {/* Quick Admin Mode Toggle Button */}
             <button
               onClick={handleToggleAdminMode}
-              title={isAdminMode ? 'Matikan Mod Admin' : 'Aktifkan Mod Admin (PIN: 5313)'}
+              title={isAdminMode ? 'Matikan Mod Admin' : 'Aktifkan Mod Admin (Emel MARA / Master PIN)'}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-extrabold transition-all border cursor-pointer ${
                 isAdminMode
                   ? 'bg-amber-500 hover:bg-amber-600 text-white border-amber-400 shadow-md shadow-amber-200'
@@ -547,7 +564,7 @@ export default function App() {
               {isAdminMode ? (
                 <>
                   <Pencil className="w-3.5 h-3.5" />
-                  <span>Mod Admin Aktif</span>
+                  <span className="max-w-[140px] truncate">{currentAdmin?.name ? `Admin: ${currentAdmin.name}` : 'Mod Admin Aktif'}</span>
                 </>
               ) : (
                 <>
@@ -639,7 +656,7 @@ export default function App() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Cari staf berdasarkan nama atau maklumat lain..."
+                    placeholder="Cari nama, no. plat (cth: SYM2539), gred, jabatan..."
                     className="w-full pl-11 pr-10 py-3 bg-white/90 border border-indigo-200/80 rounded-2xl text-xs md:text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:outline-none transition-all shadow-2xs"
                   />
                   {searchQuery && (
@@ -860,8 +877,8 @@ export default function App() {
                   <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Jumlah Staf</span>
                 </div>
                 <div className="bg-white/90 border border-slate-100 px-4 py-2.5 rounded-2xl text-center shadow-2xs">
-                  <span className="text-xl font-extrabold text-emerald-600 block leading-tight">{activeStaff}</span>
-                  <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Staf Aktif</span>
+                  <span className="text-xl font-extrabold text-emerald-600 block leading-tight">{supportStaff}</span>
+                  <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Pentadbiran & Sokongan</span>
                 </div>
                 <div className="bg-white/90 border border-slate-100 px-4 py-2.5 rounded-2xl text-center shadow-2xs">
                   <span className="text-xl font-extrabold text-indigo-600 block leading-tight">{academicStaff}</span>
@@ -899,6 +916,7 @@ export default function App() {
           setIsAddEditOpen(true);
         }}
         onOpenCommittee={(stf) => setCommitteeStaff(stf)}
+        onOpenAdminPin={() => setIsAdminPinOpen(true)}
       />
 
       <CommitteeModal
@@ -946,8 +964,9 @@ export default function App() {
       <AdminPinModal
         isOpen={isAdminPinOpen}
         onClose={() => setIsAdminPinOpen(false)}
-        onSuccess={() => {
+        onSuccess={(admin) => {
           setIsAdminMode(true);
+          setCurrentAdmin(admin || null);
           setIsAdminPinOpen(false);
         }}
       />

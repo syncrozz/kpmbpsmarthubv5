@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Phone, MessageCircle, Mail, GraduationCap, Award, Building2, HelpCircle, ArrowUpRight, Hash, Pencil, Camera, ChevronRight, Calendar, ExternalLink, Car, Bike, MapPin } from 'lucide-react';
+import { X, Phone, MessageCircle, Mail, GraduationCap, Award, Building2, HelpCircle, ArrowUpRight, Hash, Pencil, Camera, ChevronRight, Calendar, ExternalLink, Car, Bike, MapPin, Lock, ShieldCheck } from 'lucide-react';
 import { Staff, StaffCommittee } from '../types';
 import { getGredBadgeStyle } from '../utils/gredColors';
 import { getBahagianTheme } from '../utils/bahagianColors';
@@ -19,9 +19,10 @@ interface ProfileModalProps {
   isAdminMode?: boolean;
   onEditStaff?: (staff: Staff) => void;
   onOpenCommittee?: (staff: Staff) => void;
+  onOpenAdminPin?: () => void;
 }
 
-export const ProfileModal: React.FC<ProfileModalProps> = ({ staff, committees = [], onClose, isAdminMode, onEditStaff, onOpenCommittee }) => {
+export const ProfileModal: React.FC<ProfileModalProps> = ({ staff, committees = [], onClose, isAdminMode, onEditStaff, onOpenCommittee, onOpenAdminPin }) => {
   const [timetableError, setTimetableError] = useState(false);
   const [isTimetableLoading, setIsTimetableLoading] = useState(true);
 
@@ -285,63 +286,98 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ staff, committees = 
                 </div>
               )}
 
-              {/* Daerah Asal & Tahun Lahir */}
-              {(staff.DaerahAsal || staff.TahunLahir || staff['Tahun Lahir']) && (
-                <div className="flex gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-100">
-                  <div className="mt-0.5 p-2 bg-teal-100 text-teal-700 rounded-xl h-9 w-9 flex items-center justify-center shrink-0">
-                    <MapPin className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Daerah Asal & Tahun Lahir</h4>
-                    <p className="text-xs text-slate-800 font-bold">
-                      {staff.DaerahAsal || 'Tiada rekod'}
-                      {(staff.TahunLahir || staff['Tahun Lahir']) && (
-                        <span className="ml-2 text-slate-500 font-medium">
-                          • Lahir: {staff.TahunLahir || staff['Tahun Lahir']}
-                        </span>
-                      )}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Maklumat Kenderaan (Plat Kereta & Motosikal) */}
-              {(() => {
-                const carPlates = [staff.PlatNo1, staff.PlatNo2, staff.PlatNo3].filter(Boolean) as string[];
-                const bikePlates = [staff.PlatMotor1, staff.PlatMotor2].filter(Boolean) as string[];
-                const otherPlates = (!carPlates.length && !bikePlates.length && staff.NoPlat) ? [staff.NoPlat] : [];
-
-                if (carPlates.length === 0 && bikePlates.length === 0 && otherPlates.length === 0) return null;
-
-                return (
-                  <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 space-y-2">
-                    <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                      <Car className="w-3.5 h-3.5 text-slate-600" />
-                      <span>Nombor Pendaftaran Kenderaan</span>
-                    </h4>
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {carPlates.map((plate, idx) => (
-                        <span key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-black text-slate-900 shadow-2xs font-mono">
-                          <Car className="w-3 h-3 text-indigo-600" />
-                          {plate}
-                        </span>
-                      ))}
-                      {bikePlates.map((plate, idx) => (
-                        <span key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-black text-slate-900 shadow-2xs font-mono">
-                          <Bike className="w-3 h-3 text-emerald-600" />
-                          {plate}
-                        </span>
-                      ))}
-                      {otherPlates.map((plate, idx) => (
-                        <span key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-black text-slate-900 shadow-2xs font-mono">
-                          <Car className="w-3 h-3 text-slate-600" />
-                          {plate}
-                        </span>
-                      ))}
+              {/* Daerah Asal & Tahun Lahir (Akses Mod Admin Sahaja) */}
+              {isAdminMode ? (
+                (staff.DaerahAsal || staff.TahunLahir || staff['Tahun Lahir']) && (
+                  <div className="flex gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                    <div className="mt-0.5 p-2 bg-teal-100 text-teal-700 rounded-xl h-9 w-9 flex items-center justify-center shrink-0">
+                      <MapPin className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Daerah Asal & Tahun Lahir</h4>
+                        <span className="px-1.5 py-0.2 bg-indigo-100 text-indigo-700 text-[9px] font-black rounded-md uppercase">Mod Admin</span>
+                      </div>
+                      <p className="text-xs text-slate-800 font-bold mt-0.5">
+                        {staff.DaerahAsal || 'Tiada rekod'}
+                        {(staff.TahunLahir || staff['Tahun Lahir']) && (
+                          <span className="ml-2 text-slate-500 font-medium">
+                            • Lahir: {staff.TahunLahir || staff['Tahun Lahir']}
+                          </span>
+                        )}
+                      </p>
                     </div>
                   </div>
-                );
-              })()}
+                )
+              ) : null}
+
+              {/* Maklumat Kenderaan (Plat Kereta & Motosikal - Akses Mod Admin Sahaja) */}
+              {isAdminMode ? (
+                (() => {
+                  const carPlates = [staff.PlatNo1, staff.PlatNo2, staff.PlatNo3].filter(Boolean) as string[];
+                  const bikePlates = [staff.PlatMotor1, staff.PlatMotor2].filter(Boolean) as string[];
+                  const otherPlates = (!carPlates.length && !bikePlates.length && staff.NoPlat) ? [staff.NoPlat] : [];
+
+                  if (carPlates.length === 0 && bikePlates.length === 0 && otherPlates.length === 0) return null;
+
+                  return (
+                    <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                          <Car className="w-3.5 h-3.5 text-slate-600" />
+                          <span>Nombor Pendaftaran Kenderaan</span>
+                        </h4>
+                        <span className="px-1.5 py-0.2 bg-indigo-100 text-indigo-700 text-[9px] font-black rounded-md uppercase">Mod Admin</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {carPlates.map((plate, idx) => (
+                          <span key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-black text-slate-900 shadow-2xs font-mono">
+                            <Car className="w-3 h-3 text-indigo-600" />
+                            {plate}
+                          </span>
+                        ))}
+                        {bikePlates.map((plate, idx) => (
+                          <span key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-black text-slate-900 shadow-2xs font-mono">
+                            <Bike className="w-3 h-3 text-emerald-600" />
+                            {plate}
+                          </span>
+                        ))}
+                        {otherPlates.map((plate, idx) => (
+                          <span key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-black text-slate-900 shadow-2xs font-mono">
+                            <Car className="w-3 h-3 text-slate-600" />
+                            {plate}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()
+              ) : null}
+
+              {/* Notis Akses Terhad bagi Bukan-Admin */}
+              {!isAdminMode && (
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200/80 flex items-center justify-between gap-3 text-left">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 bg-slate-200 text-slate-600 rounded-xl shrink-0">
+                      <Lock className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-[11px] font-extrabold text-slate-700">Maklumat Peribadi & Kenderaan Dihadkan</h4>
+                      <p className="text-[10px] text-slate-500 font-medium">Daerah asal, tahun lahir & no. plat kenderaan hanya untuk Mod Admin.</p>
+                    </div>
+                  </div>
+                  {onOpenAdminPin && (
+                    <button
+                      type="button"
+                      onClick={onOpenAdminPin}
+                      className="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[10px] font-extrabold shrink-0 transition-all cursor-pointer shadow-2xs flex items-center gap-1"
+                    >
+                      <Lock className="w-3 h-3" />
+                      <span>Mod Admin</span>
+                    </button>
+                  )}
+                </div>
+              )}
 
               {/* Kelulusan Akademik (Kelayakan) */}
               <div className="flex gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-100">
