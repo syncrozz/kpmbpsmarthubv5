@@ -107,7 +107,7 @@ export const AdminPinModal: React.FC<AdminPinModalProps> = ({ isOpen, onClose, o
     }
   };
 
-  // Submit via Master PIN (5313)
+  // Submit via Master PIN
   const handleMasterPinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (masterPin.length !== 4) return;
@@ -179,7 +179,7 @@ export const AdminPinModal: React.FC<AdminPinModalProps> = ({ isOpen, onClose, o
 
           <div>
             <h3 className="text-lg font-extrabold text-slate-900 tracking-tight">
-              Akses Mod Admin
+              Akses Admin Mode
             </h3>
             <p className="text-xs text-slate-500 font-medium mt-1 leading-relaxed">
               Pilih kaedah pengesahan untuk melihat data sensitif (daerah asal, tahun lahir & no. plat kenderaan).
@@ -216,7 +216,7 @@ export const AdminPinModal: React.FC<AdminPinModalProps> = ({ isOpen, onClose, o
               }`}
             >
               <KeyRound className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Master PIN (5313)</span>
+              <span>Master PIN</span>
             </button>
           </div>
 
@@ -236,7 +236,7 @@ export const AdminPinModal: React.FC<AdminPinModalProps> = ({ isOpen, onClose, o
                     setEmail(e.target.value);
                     if (errorMessage) setErrorMessage('');
                   }}
-                  placeholder="contoh: khairi.mohd@mara.gov.my"
+                  placeholder="emel@mara.gov.my"
                   className="w-full px-3.5 py-2.5 text-xs font-medium rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none transition-all"
                   required
                 />
@@ -259,13 +259,10 @@ export const AdminPinModal: React.FC<AdminPinModalProps> = ({ isOpen, onClose, o
                     setPin(e.target.value.replace(/\D/g, '').slice(0, 4));
                     if (errorMessage) setErrorMessage('');
                   }}
-                  placeholder="4 digit terakhir IC (cth: 5305)"
+                  placeholder="••••"
                   className="w-full px-3.5 py-2.5 text-center text-base tracking-widest font-extrabold rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white focus:border-indigo-600 focus:ring-2 focus:ring-indigo-100 outline-none transition-all"
                   required
                 />
-                <p className="text-[10.5px] text-slate-400 font-medium leading-normal">
-                  Contoh: Jika No. IC ialah <strong>861115-46-5305</strong>, PIN keselamatan 4 digitnya ialah <strong>5305</strong>.
-                </p>
               </div>
 
               {errorMessage && (
@@ -280,12 +277,12 @@ export const AdminPinModal: React.FC<AdminPinModalProps> = ({ isOpen, onClose, o
                 className="w-full py-3 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 active:scale-[0.98] text-white rounded-xl text-xs font-extrabold shadow-md shadow-indigo-200 transition-all flex items-center justify-center gap-2 cursor-pointer mt-2"
               >
                 <ShieldCheck className="w-4 h-4" />
-                <span>Log Masuk Mod Admin</span>
+                <span>Log Masuk Admin Mode</span>
               </button>
             </form>
           )}
 
-          {/* Tab 2: Master PIN (5313) Login */}
+          {/* Tab 2: Master PIN Login */}
           {authTab === 'masterPin' && (
             <form onSubmit={handleMasterPinSubmit} className="space-y-4 pt-1">
               <div className="space-y-2.5">
@@ -298,7 +295,7 @@ export const AdminPinModal: React.FC<AdminPinModalProps> = ({ isOpen, onClose, o
                   maxLength={4}
                   value={masterPin}
                   onChange={handleMasterPinChange}
-                  placeholder="Masukkan PIN Master (5313)"
+                  placeholder="••••"
                   className={`w-full px-4 py-3.5 text-center text-lg tracking-widest font-extrabold rounded-2xl border-2 transition-all outline-hidden ${
                     errorMessage
                       ? 'border-rose-400 bg-rose-50/50 text-rose-700 focus:border-rose-500 focus:ring-2 focus:ring-rose-200'

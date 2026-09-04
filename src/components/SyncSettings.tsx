@@ -728,7 +728,7 @@ function doGet(e) {
 }
 
 function doPost(e) {
-  // Handle sync updates from SmartHub to Google Sheets
+  // Handle sync updates from Directory KPMBP to Google Sheets
   try {
     var rawData = e.postData.contents;
     var payload = JSON.parse(rawData);
@@ -797,7 +797,7 @@ function doPost(e) {
                   type="button"
                   onClick={onInstallPWA}
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-xs font-extrabold shadow-xs transition-all cursor-pointer border border-emerald-500/30"
-                  title="Pasang / Install Aplikasi KPMBP SmartHub (PWA)"
+                  title="Pasang / Install Aplikasi Directory KPMBP (PWA)"
                 >
                   <Smartphone className="w-3.5 h-3.5" />
                   <span>Pasang App</span>
@@ -827,7 +827,7 @@ function doPost(e) {
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-extrabold flex items-center gap-1.5">
                     <UserCheck className={`w-4 h-4 ${isAdminMode ? 'text-amber-600' : 'text-slate-400'}`} />
-                    Mod Suntingan Admin
+                    Admin Mode (Suntingan)
                   </span>
                   <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-md ${
                     isAdminMode ? 'bg-amber-200 text-amber-900' : 'bg-slate-200 text-slate-700'
@@ -847,7 +847,7 @@ function doPost(e) {
                     : 'bg-slate-800 hover:bg-slate-900 text-white'
                 }`}
               >
-                {isAdminMode ? 'Matikan Mod Admin' : 'Aktifkan Mod Admin'}
+                {isAdminMode ? 'Matikan Admin Mode' : 'Aktifkan Admin Mode'}
               </button>
             </div>
 
@@ -934,11 +934,11 @@ function doPost(e) {
                   <span>Otorisasi Akses Admin (Emel MARA & 4 Digit PIN IC)</span>
                 </h4>
                 <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                  Master Admin boleh membenarkan pegawai mengakses Mod Admin untuk melihat maklumat sensitif (Daerah Asal, Tahun Lahir, No. Plat Kenderaan).
+                  Master Admin boleh membenarkan pegawai mengakses Admin Mode untuk melihat maklumat sensitif (Daerah Asal, Tahun Lahir, No. Plat Kenderaan).
                 </p>
               </div>
               <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-900 border border-indigo-200 self-start sm:self-auto shrink-0">
-                Master PIN: 5313
+                Master Admin Sahaja
               </span>
             </div>
 
@@ -1053,7 +1053,7 @@ function doPost(e) {
                           </span>
                         </div>
                         <p className="text-[10px] font-mono text-slate-500 truncate">
-                          {admin.email} • PIN IC: <span className="font-bold text-indigo-900">{admin.icPin}</span>
+                          {admin.email} • Status: <span className="font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">PIN Aktif (••••)</span>
                         </p>
                       </div>
                     </div>

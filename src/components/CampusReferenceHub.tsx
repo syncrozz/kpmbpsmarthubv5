@@ -208,7 +208,7 @@ export const CampusReferenceHub: React.FC = () => {
     },
     {
       id: 'c6',
-      department: 'Unit Teknologi Maklumat & SmartHub Support',
+      department: 'Unit Teknologi Maklumat & Sokongan Direktori KPMBP',
       role: 'Akses Wi-Fi kampus, penetapan emel rasmi, ID Teams, dan sokongan sistem digital.',
       phone: '07-8842222',
       whatsapp: '60137254391',

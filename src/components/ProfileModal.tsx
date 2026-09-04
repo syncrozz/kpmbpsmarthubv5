@@ -22,6 +22,31 @@ interface ProfileModalProps {
   onOpenAdminPin?: () => void;
 }
 
+export const parseQualificationLines = (raw: string | undefined): string[] => {
+  if (!raw || !raw.trim()) return [];
+  // Split on newlines or semicolons first
+  const rawSegments = raw.split(/[\r\n]+|;/g).map(s => s.trim()).filter(Boolean);
+  const results: string[] = [];
+
+  for (const seg of rawSegments) {
+    // Splits on comma followed by next numbered item (e.g. ', 2 - ', ', 3. ', ', 2) ')
+    // OR comma followed by degree level keyword (Sarjana/Ijazah/Diploma/Sijil/Bachelor/Master/PhD/Doctor/Degree)
+    const parts = seg.split(/,\s*(?=(?:\d+\s*[-.),]|\b(?:Sarjana|Ijazah|Diploma|Sijil|Bachelor|Master|PhD|Doctor|Doctorate|Degree|Postgraduate)\b))/i);
+    for (const p of parts) {
+      const clean = p.replace(/^,\s*|,\s*$/g, '').trim();
+      if (clean) results.push(clean);
+    }
+  }
+
+  // Fallback if multiple numbered items exist without comma
+  if (results.length === 1 && /(?:\s+\d+\s*[-.)]\s+)/.test(results[0])) {
+    const fallbackParts = results[0].split(/(?=\b\d+\s*[-.)]\s+)/).map(s => s.replace(/^,\s*|,\s*$/g, '').trim()).filter(Boolean);
+    if (fallbackParts.length > 1) return fallbackParts;
+  }
+
+  return results.length > 0 ? results : [raw.trim()];
+};
+
 export const ProfileModal: React.FC<ProfileModalProps> = ({ staff, committees = [], onClose, isAdminMode, onEditStaff, onOpenCommittee, onOpenAdminPin }) => {
   const [timetableError, setTimetableError] = useState(false);
   const [isTimetableLoading, setIsTimetableLoading] = useState(true);
@@ -142,27 +167,34 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ staff, committees = 
         >
           {/* Cover Color Strip */}
           <div className={`h-24 w-full relative ${theme.banner} bg-opacity-90 backdrop-blur-sm`}>
-            {/* Admin Edit Quick Action */}
-            {isAdminMode && onEditStaff && (
-              <button
-                onClick={() => {
-                  onClose();
-                  onEditStaff(staff);
-                }}
-                className="absolute top-4 left-4 bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs px-3 py-1.5 rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
-              >
-                <Pencil className="w-3.5 h-3.5" />
-                <span>Sunting Rekod Staf</span>
-              </button>
-            )}
+            {/* Action Buttons on Banner (Edit Icon on the left of X Close Button) */}
+            <div className="absolute top-4 right-4 flex items-center gap-2">
+              {isAdminMode && onEditStaff && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onEditStaff(staff);
+                  }}
+                  title="Sunting Rekod Staf"
+                  aria-label="Sunting Rekod Staf"
+                  className="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white rounded-full p-2 backdrop-blur-sm transition-all focus:outline-none shadow-md border border-white/20 cursor-pointer flex items-center justify-center hover:scale-105"
+                >
+                  <Pencil className="w-5 h-5" />
+                </button>
+              )}
 
-            {/* Close Button on Banner */}
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 bg-white/20 hover:bg-white/35 text-white rounded-full p-2 backdrop-blur-sm transition-all focus:outline-none border border-white/10 cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
+              {/* Close Button on Banner */}
+              <button
+                type="button"
+                onClick={onClose}
+                title="Tutup"
+                aria-label="Tutup"
+                className="bg-white/20 hover:bg-white/35 active:scale-95 text-white rounded-full p-2 backdrop-blur-sm transition-all focus:outline-none border border-white/10 cursor-pointer flex items-center justify-center"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* Profile Photo Area */}
@@ -296,7 +328,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ staff, committees = 
                     <div>
                       <div className="flex items-center gap-1.5">
                         <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Daerah Asal & Tahun Lahir</h4>
-                        <span className="px-1.5 py-0.2 bg-indigo-100 text-indigo-700 text-[9px] font-black rounded-md uppercase">Mod Admin</span>
+                        <span className="px-1.5 py-0.2 bg-indigo-100 text-indigo-700 text-[9px] font-black rounded-md uppercase">Admin Mode</span>
                       </div>
                       <p className="text-xs text-slate-800 font-bold mt-0.5">
                         {staff.DaerahAsal || 'Tiada rekod'}
@@ -311,7 +343,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ staff, committees = 
                 )
               ) : null}
 
-              {/* Maklumat Kenderaan (Plat Kereta & Motosikal - Akses Mod Admin Sahaja) */}
+              {/* Maklumat Kenderaan (Plat Kereta & Motosikal - Akses Admin Mode Sahaja) */}
               {isAdminMode ? (
                 (() => {
                   const carPlates = [staff.PlatNo1, staff.PlatNo2, staff.PlatNo3].filter(Boolean) as string[];
@@ -327,7 +359,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ staff, committees = 
                           <Car className="w-3.5 h-3.5 text-slate-600" />
                           <span>Nombor Pendaftaran Kenderaan</span>
                         </h4>
-                        <span className="px-1.5 py-0.2 bg-indigo-100 text-indigo-700 text-[9px] font-black rounded-md uppercase">Mod Admin</span>
+                        <span className="px-1.5 py-0.2 bg-indigo-100 text-indigo-700 text-[9px] font-black rounded-md uppercase">Admin Mode</span>
                       </div>
                       <div className="flex flex-wrap gap-2 pt-1">
                         {carPlates.map((plate, idx) => (
@@ -363,7 +395,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ staff, committees = 
                     </div>
                     <div>
                       <h4 className="text-[11px] font-extrabold text-slate-700">Maklumat Peribadi & Kenderaan Dihadkan</h4>
-                      <p className="text-[10px] text-slate-500 font-medium">Daerah asal, tahun lahir & no. plat kenderaan hanya untuk Mod Admin.</p>
+                      <p className="text-[10px] text-slate-500 font-medium">Daerah asal, tahun lahir & no. plat kenderaan hanya untuk Admin Mode.</p>
                     </div>
                   </div>
                   {onOpenAdminPin && (
@@ -373,7 +405,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ staff, committees = 
                       className="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-[10px] font-extrabold shrink-0 transition-all cursor-pointer shadow-2xs flex items-center gap-1"
                     >
                       <Lock className="w-3 h-3" />
-                      <span>Mod Admin</span>
+                      <span>Admin Mode</span>
                     </button>
                   )}
                 </div>
@@ -384,11 +416,21 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ staff, committees = 
                 <div className="mt-0.5 p-2 bg-emerald-100 text-emerald-700 rounded-xl h-9 w-9 flex items-center justify-center shrink-0">
                   <GraduationCap className="w-4 h-4" />
                 </div>
-                <div>
-                  <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Kelulusan Akademik (Kelayakan)</h4>
-                  <p className="text-xs text-slate-800 leading-relaxed font-bold">
-                    {staff.Kelulusan || 'Tiada rekod kelulusan khusus'}
-                  </p>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Kelulusan Akademik (Kelayakan)</h4>
+                  {staff.Kelulusan ? (
+                    <div className="space-y-1.5">
+                      {parseQualificationLines(staff.Kelulusan).map((line, idx) => (
+                        <p key={idx} className="text-xs text-slate-800 leading-relaxed font-bold">
+                          {line}
+                        </p>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-800 leading-relaxed font-bold">
+                      Tiada rekod kelulusan khusus
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -398,11 +440,15 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ staff, committees = 
                   <div className="mt-0.5 p-2 bg-amber-100 text-amber-700 rounded-xl h-9 w-9 flex items-center justify-center shrink-0">
                     <Award className="w-4 h-4" />
                   </div>
-                  <div>
-                    <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Bidang Pengkhususan / Kepakaran</h4>
-                    <p className="text-xs text-slate-800 leading-relaxed font-bold">
-                      {staff.Pengkhususan}
-                    </p>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-1">Bidang Pengkhususan / Kepakaran</h4>
+                    <div className="space-y-1.5">
+                      {parseQualificationLines(staff.Pengkhususan).map((line, idx) => (
+                        <p key={idx} className="text-xs text-slate-800 leading-relaxed font-bold">
+                          {line}
+                        </p>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}

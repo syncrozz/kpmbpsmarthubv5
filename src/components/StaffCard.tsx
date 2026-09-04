@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { ChevronRight, Pencil } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { Staff } from '../types';
 import { getGredBadgeStyle } from '../utils/gredColors';
 import { getBahagianTheme } from '../utils/bahagianColors';
@@ -52,7 +52,7 @@ export const StaffCard: React.FC<StaffCardProps> = ({ staff, onClick, isAdminMod
       className={`group relative flex flex-col justify-between p-5 md:p-6 glass-card rounded-[26px] cursor-pointer border border-white/70 shadow-xs hover:shadow-xl transition-all duration-300 ${theme.bg}`}
     >
       <div>
-        {/* Top Header Row: Badges & Chevron / Admin Edit */}
+        {/* Top Header Row: Badges & Chevron */}
         <div className="flex items-center justify-between gap-2 mb-4">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className={`px-2.5 py-0.5 text-[10px] font-black tracking-wider rounded-lg border uppercase shadow-2xs ${theme.badge}`}>
@@ -64,46 +64,19 @@ export const StaffCard: React.FC<StaffCardProps> = ({ staff, onClick, isAdminMod
           </div>
 
           <div className="flex items-center gap-1.5">
-            {isAdminMode && onEdit && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(staff);
-                }}
-                className="p-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg shadow-xs transition-all cursor-pointer flex items-center justify-center gap-1 text-[10px] font-bold"
-                title="Sunting Profil / Gambar"
-              >
-                <Pencil className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Sunting</span>
-              </button>
-            )}
             <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-0.5 transition-all" />
           </div>
         </div>
 
         {/* Profile Info Row: Round WhatsApp Style Profile Photo at Top-Left */}
         <div className="flex items-start gap-3.5 text-left">
-          {/* Round WhatsApp Profile Picture Avatar with Admin Pencil overlay */}
-          <div className="relative group/avatar shrink-0">
+          {/* Round WhatsApp Profile Picture Avatar */}
+          <div className="relative shrink-0">
             <StaffAvatar
               staff={staff}
               avatarBgClassName={theme.avatarBg}
               ringClassName={theme.ring}
             />
-            {isAdminMode && onEdit && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(staff);
-                }}
-                className="absolute -bottom-1 -right-1 p-1 bg-amber-500 hover:bg-amber-600 text-white rounded-full shadow-md border-2 border-white transition-all cursor-pointer hover:scale-110"
-                title="Tukar Gambar Profil"
-              >
-                <Pencil className="w-3 h-3" />
-              </button>
-            )}
           </div>
 
           {/* Name & Jawatan */}

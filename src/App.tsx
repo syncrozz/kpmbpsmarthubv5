@@ -118,6 +118,7 @@ export default function App() {
   // PWA Install Prompt State
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isPwaInstalled, setIsPwaInstalled] = useState(false);
+  const [isPwaGuideOpen, setIsPwaGuideOpen] = useState(false);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -149,13 +150,10 @@ export default function App() {
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') {
         setDeferredPrompt(null);
+        setIsPwaInstalled(true);
       }
     } else {
-      alert(
-        'Petua PWA:\n\nUntuk memasang aplikasi KPMBP SmartHub ini ke Skrin Utama (Home Screen):\n\n' +
-        '• Di Android (Chrome): Tekan butang menu (⋮) > Pilih "Add to Home Screen" / "Install app".\n' +
-        '• Di iOS (Safari): Tekan butang Kongsi (Share) > Pilih "Add to Home Screen".'
-      );
+      setIsPwaGuideOpen(true);
     }
   };
 
@@ -554,7 +552,7 @@ export default function App() {
             {/* Quick Admin Mode Toggle Button */}
             <button
               onClick={handleToggleAdminMode}
-              title={isAdminMode ? 'Matikan Mod Admin' : 'Aktifkan Mod Admin (Emel MARA / Master PIN)'}
+              title={isAdminMode ? 'Matikan Admin Mode' : 'Aktifkan Admin Mode (Emel MARA / Master PIN)'}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-extrabold transition-all border cursor-pointer ${
                 isAdminMode
                   ? 'bg-amber-500 hover:bg-amber-600 text-white border-amber-400 shadow-md shadow-amber-200'
@@ -564,12 +562,12 @@ export default function App() {
               {isAdminMode ? (
                 <>
                   <Pencil className="w-3.5 h-3.5" />
-                  <span className="max-w-[140px] truncate">{currentAdmin?.name ? `Admin: ${currentAdmin.name}` : 'Mod Admin Aktif'}</span>
+                  <span className="max-w-[140px] truncate">{currentAdmin?.name ? `Admin: ${currentAdmin.name}` : 'Admin Mode Aktif'}</span>
                 </>
               ) : (
                 <>
                   <Lock className="w-3.5 h-3.5 text-indigo-600" />
-                  <span>Mod Admin</span>
+                  <span>Admin Mode</span>
                 </>
               )}
             </button>

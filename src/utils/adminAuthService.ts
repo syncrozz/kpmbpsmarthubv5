@@ -92,7 +92,7 @@ export function addAuthorizedAdmin(
     saveAuthorizedAdmins(currentList);
     return {
       success: true,
-      message: `Admin ${cleanEmail} telah berjaya dikemaskini dengan PIN 4-digit: ${last4Pin}.`,
+      message: `Admin ${cleanEmail} telah berjaya dikemaskini.`,
       admin: currentList[existingIndex],
     };
   }
@@ -112,7 +112,7 @@ export function addAuthorizedAdmin(
 
   return {
     success: true,
-    message: `Admin ${cleanEmail} berjaya diotorisasi dengan PIN keselamatan 4-digit: ${last4Pin}.`,
+    message: `Admin ${cleanEmail} berjaya diotorisasi untuk Admin Mode.`,
     admin: newAdmin,
   };
 }
